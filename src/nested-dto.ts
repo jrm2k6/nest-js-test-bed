@@ -7,7 +7,7 @@ class Filter {
 
     @IsArray()
     @IsNumber({}, { each: true})
-    parentIds?: string[];
+    parentIds?: number[];
 }
 
 class Context {
@@ -28,7 +28,18 @@ export class NestedDto {
     @IsNumberString(null, { each: true })
     ids: number[]
 
+    // NOTE: seems to not be validating that the nested data
+    // conforms to the type Filter.
+    // http://localhost:3000/test?name=Jeremy&ids=1&ids=2&filters={"parentIds":["1","2","3"]}
+    // still works even if I would expect it to fail
     @ValidateNested()
     @Type(() => Filter)
+    @Transform(value => {
+        try {
+            return JSON.parse(value);
+        } catch (e) {
+            return {};
+        }
+    })
     filters: Filter;
 }
