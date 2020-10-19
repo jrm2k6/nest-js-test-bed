@@ -14,7 +14,7 @@ export class AppController {
 
   @Get('test')
   getTest(
-    @Query(new ValidationPipe({ transform: true })) payload: NestedDto
+    @Query(new ValidationPipe({ transform: true, whitelist: true })) payload: NestedDto
   ): any {
     console.log(payload);
     return { test: true, ...payload };
@@ -22,9 +22,9 @@ export class AppController {
 
   @Post('post-test')
   postPostTest(
-    @Body(new ValidationPipe({ whitelist: true })) payload: NestedDto
+    @Body(new ValidationPipe({ transform: true, whitelist: true })) payload: NestedDto
   ): any {
     console.log(payload);
-    return { test: true };
+    return { ...payload, test: true };
   }
 }

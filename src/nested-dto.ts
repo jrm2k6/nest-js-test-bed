@@ -1,5 +1,5 @@
-import { Transform, Type } from 'class-transformer';
-import { IsArray, IsJSON, IsNumber, IsNumberString, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { plainToClass, Transform, Type } from 'class-transformer';
+import { IsArray, IsNumber, IsNumberString, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 class Filter {
     @IsString()
@@ -25,18 +25,24 @@ export class NestedDto {
 
     @IsOptional()
     @IsArray()
-    @IsNumberString(null, { each: true })
+    @Transform(value => {
+        try {
+            return value.map(elem => parseInt(elem, 10));
+        } catch (e) {
+            return [];
+        }
+    })
     ids: number[]
 
-    // NOTE: seems to not be validating that the nested data
-    // conforms to the type Filter.
-    // http://localhost:3000/test?name=Jeremy&ids=1&ids=2&filters={"parentIds":["1","2","3"]}
-    // still works even if I would expect it to fail
     @ValidateNested()
     @Type(() => Filter)
     @Transform(value => {
         try {
-            return JSON.parse(value);
+            if (typeof value === 'string') {
+                return plainToClass(Filter, JSON.parse(value));
+            }
+
+            return value;
         } catch (e) {
             return {};
         }
